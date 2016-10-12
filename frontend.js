@@ -5,6 +5,7 @@ $(function () {
     var content = $('#content');
     var input = $('#input');
     var status = $('#status');
+    var dashboard = $('#dashboard');
 
     // my color assigned by the server
     var myColor = false;
@@ -49,6 +50,7 @@ $(function () {
             console.log('This doesn\'t look like a valid JSON: ', message.data);
             return;
         }
+		console.log("Recibido" + message.data)
 
         // NOTE: if you're not sure about the JSON structure
         // check the server source code above
@@ -63,10 +65,19 @@ $(function () {
                 addMessage(json.data[i].author, json.data[i].text,
                            json.data[i].color, new Date(json.data[i].time));
             }
+        }else if (json.type === 'initialStatus') { // entire message history
+            // insert every single message to the chat window
+			createDashboard(json.data);
+ 
         } else if (json.type === 'message') { // it's a single message
             input.removeAttr('disabled'); // let the user write another message
             addMessage(json.data.author, json.data.text,
                        json.data.color, new Date(json.data.time));
+					   
+		} else if (json.type === 'update') { // it's a single message
+
+            addMessage(json.data.idUsuario,'Updated server: ' + json.data.Descripcion,
+                       'green', new Date(json.data.time));
         } else {
             console.log('Hmm..., I\'ve never seen JSON like this: ', json);
         }
@@ -81,17 +92,30 @@ $(function () {
             if (!msg) {
                 return;
             }
+			
+			var test={
+				type:'chat',
+				data:msg
+			}
+			
+			
+			if (myName === false) {
+				// we know that the first message sent from a user their name
+                myName = msg;	
+				test.type='register';
+				
+            }
+			
             // send the message as an ordinary text
-            connection.send(msg);
+            connection.send(JSON.stringify(test));
+			console.log(test)
             $(this).val('');
             // disable the input field to make the user wait until server
             // sends back response
             input.attr('disabled', 'disabled');
 
-            // we know that the first message sent from a user their name
-            if (myName === false) {
-                myName = msg;
-            }
+            
+            
         }
     });
 
@@ -117,4 +141,35 @@ $(function () {
              + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
              + ': ' + message + '</p>');
     }
+	
+	/** Create innitial dashboard **/
+	var createDashboard = function(data){
+		dashboard.html('');
+		$.each(data.servers,function(idx,value){
+			var checkbox = '<input type="checkbox" class="srvStatus" data-idServidor="'+value.idServidor+'"' + (value.Estado == '1' ?  'checked' : '') +'/>'
+			var div = '<div id="srv_'+value.idServidor+'">'+value.Descripcion+checkbox+'</div>';
+			dashboard.append(div);
+		})		
+	}
+	
+	$(document).on('change','.srvStatus', function(ev){
+			var idServidor = $(this).attr('data-idServidor');
+			var Estado = $(this).is(':checked') ? 1 : 0;;
+			var obj={
+				type:'update',
+				data:{
+					idServidor:idServidor,
+					Estado:Estado,
+					Accion:''
+				}
+			}
+            connection.send(JSON.stringify(obj));
+			
+		
+	});
+	
+	
+	
+	
+	
 });

@@ -1,5 +1,4 @@
-// http://ejohn.org/blog/ecmascript-5-strict-mode-json-and-more/
-"use strict";
+'use strict';
 
 // Optional. You will see this name in eg. 'ps' or 'top' command
 process.title = 'node-chat';
@@ -11,56 +10,64 @@ var webSocketsServerPort = 1337;
 var webSocketServer = require('websocket').server;
 var http = require('http');
 var fs = require('fs');
-var url = require("url");
+var data = require('./data/data');
+var url = require('url');
 
 /**
  * Global variables
  */
 // latest 100 messages
-var history = [ ];
+var history = [];
 // list of currently connected clients (users)
-var clients = [ ];
+var clients = [];
 
+
+// List of data to draw dashboard
+var data = data.getData();
 /**
  * Helper function for escaping input strings
  */
 function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // Array with some colors
-var colors = [ 'red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange' ];
+var colors = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
 // ... in random order
-colors.sort(function(a,b) { return Math.random() > 0.5; } );
+colors.sort(function(a) {
+    return Math.random() > 0.5;
+});
 
 /**
  * HTTP server
  */
 var server = http.createServer(function(request, response) {
     // Not important for us. We're writing WebSocket server, not HTTP server
-	
-	    var pathname = url.parse(request.url).pathname;
-    console.log("Request for " + pathname + " received.");
+
+    var pathname = url.parse(request.url).pathname;
+    console.log('Request for ' + pathname + ' received.');
     /*response.writeHead(200, {"Content-Type": "text/plain"});
     response.write("Hello World");
     response.end();*/
-	
-	
-	fs.readFile('.'+pathname, function (err, html) {
-		if (err) {
-			response.writeHead(400, {"Content-Type": "text/plain"});
-			response.end("Not found");	
-		}else{
-			response.writeHead(200);
-			response.end(html);		
-		}
-		//console.log(request);    
-	});
-	
+
+
+    fs.readFile('.' + pathname, function(err, html) {
+        if (err) {
+            response.writeHead(400, {
+                'Content-Type': 'text/plain'
+            });
+            response.end('Not found');
+        } else {
+            response.writeHead(200);
+            response.end(html);
+        }
+        //console.log(request);
+    });
+
 });
 server.listen(webSocketsServerPort, function() {
-    console.log((new Date()) + " Server is listening on port " + webSocketsServerPort);
+    console.log((new Date()) + ' Server is listening on port ' + webSocketsServerPort);
 });
 
 /**
@@ -80,7 +87,7 @@ wsServer.on('request', function(request) {
     // accept connection - you should check 'request.origin' to make sure that
     // client is connecting from your website
     // (http://en.wikipedia.org/wiki/Same_origin_policy)
-    var connection = request.accept(null, request.origin); 
+    var connection = request.accept(null, request.origin);
     // we need to know client index to remove them on 'close' event
     var index = clients.push(connection) - 1;
     var userName = false;
@@ -90,29 +97,66 @@ wsServer.on('request', function(request) {
 
     // send back chat history
     if (history.length > 0) {
-        connection.sendUTF(JSON.stringify( { type: 'history', data: history} ));
+        connection.sendUTF(JSON.stringify({
+            type: 'history',
+            data: history
+        }));
     }
+	if (typeof data !== 'undefined') {
+        connection.sendUTF(JSON.stringify({
+            type: 'initialStatus',
+            data: data
+        }));
+    }
+	
 
     // user sent some message
     connection.on('message', function(message) {
-        if (message.type === 'utf8') { // accept only text
-            if (userName === false) { // first message sent by user is their name
-                // remember user name
-                userName = htmlEntities(message.utf8Data);
+		console.log((new Date()) + ' New connection: ' + message );
+	        if (message.type === 'utf8') {
+			var msg = JSON.parse(message.utf8Data);
+			console.log((new Date()) + ' New message as: ' + msg.type );
+			if(msg.type === 'register'){				
+				userName = htmlEntities(msg.data);
                 // get random color and send it back to the user
                 userColor = colors.shift();
-                connection.sendUTF(JSON.stringify({ type:'color', data: userColor }));
-                console.log((new Date()) + ' User is known as: ' + userName
-                            + ' with ' + userColor + ' color.');
+                connection.sendUTF(JSON.stringify({
+                    type: 'color',
+                    data: userColor
+                }));
+                console.log((new Date()) + ' User is known as: ' + userName +
+                    ' with ' + userColor + ' color.');
 
-            } else { // log and broadcast the message
-                console.log((new Date()) + ' Received Message from '
-                            + userName + ': ' + message.utf8Data);
-                
+            } else if(msg.type === 'update'){
+                var server = msg.data;
+				for (var i = 0, len = data.servers.length; i < len; i++) {
+					if(data.servers[i].idServidor == server.idServidor){
+						data.servers[i].Estado = server.Estado;
+						data.servers[i].Accion = server.Accion;
+						msg.data.Descripcion = data.servers[i].Descripcion;
+						break;
+					}
+				}		
+				
+				msg.data.idUsuario = userName;
+				
+				console.log(data);
+				var json = JSON.stringify({
+                    type: 'update',
+                    data: msg.data
+                });
+				
+				for (var i = 0; i < clients.length; i++) {
+                    clients[i].sendUTF(json);
+                }
+			}			
+			else if(msg.type === 'chat'){ // log and broadcast the message
+                console.log((new Date()) + ' Received Message from ' +
+                    userName + ': ' + msg.data);
                 // we want to keep history of all sent messages
                 var obj = {
                     time: (new Date()).getTime(),
-                    text: htmlEntities(message.utf8Data),
+                    text: htmlEntities(msg.data),
                     author: userName,
                     color: userColor
                 };
@@ -120,8 +164,11 @@ wsServer.on('request', function(request) {
                 history = history.slice(-100);
 
                 // broadcast message to all connected clients
-                var json = JSON.stringify({ type:'message', data: obj });
-                for (var i=0; i < clients.length; i++) {
+                var json = JSON.stringify({
+                    type: 'message',
+                    data: obj
+                });
+                for (var i = 0; i < clients.length; i++) {
                     clients[i].sendUTF(json);
                 }
             }
@@ -131,8 +178,8 @@ wsServer.on('request', function(request) {
     // user disconnected
     connection.on('close', function(connection) {
         if (userName !== false && userColor !== false) {
-            console.log((new Date()) + " Peer "
-                + connection.remoteAddress + " disconnected.");
+            console.log((new Date()) + ' Peer ' +
+                connection.remoteAddress + ' disconnected.');
             // remove user from the list of connected clients
             clients.splice(index, 1);
             // push back user's color to be reused by another user
