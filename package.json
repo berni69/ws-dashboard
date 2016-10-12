@@ -1,0 +1,25 @@
+{
+  "name": "ws-dashboard",
+  "version": "0.0.1",
+  "description": "websocket dashboard based on ",
+  "homepage": "www.bitsdelocos.es",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": {
+    "name": "Bernat Mut",
+    "email": "bernat.mut@globalia-sistemas.com"
+  },
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=6.4"
+  },
+  "scripts": {
+    "start": "nodejs server.js"
+  },
+  "dependencies": {
+    "websocket": "1.0.23"
+  }
+}
