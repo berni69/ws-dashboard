@@ -1,0 +1,16 @@
+{
+  "servers": [
+    {
+      "idServidor": 1,
+      "Descripcion": "elrond",
+      "Estado": "0",
+      "Accion": ""
+    },
+    {
+      "idServidor": 2,
+      "Descripcion": "tamriel",
+      "Estado": "1",
+      "Accion": ""
+    }
+	]
+}
