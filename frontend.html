@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
-    <title>WS - Dashboard</title>   
+    <title>WS - Dashboard</title>
 </head>
 <body>
     <div id="wrapper">
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-
-
-
+            <div class="sidebar-nav">
+                <h2 class=""> TODO List </h2>
+            </div>
         </div>
         <!-- /#sidebar-wrapper -->
         <div id="page-content-wrapper">
@@ -23,7 +23,7 @@
 
                         <div>
                             <span id="status">Connecting...</span>
-                            <input type="text" id="input" disabled="disabled" />
+                            <input type="text" id="input" placeholder="Text me" disabled="disabled" />
                         </div>
                         <div class="row" id="dashboard"></div>
 
@@ -38,6 +38,22 @@
         </div>
 
     </div>
+    <template id="srvTemplate">
+        <div class="col-md-4" id="srv_{{idServidor}}">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {{Descripcion}}
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group" id="btns_{{idServidor}}" role="group">
+                        <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default OK"><i class="fa fa-check" aria-hidden="true"></i></button>
+                        <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default WORKING"><i class="fa fa-cog fa-spin fa-fw"></i></button>
+                        <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default FAIL"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -47,5 +63,6 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="./frontend.js"></script>
     <link rel="stylesheet" href="./css/frontend.css" />
+    <link rel="stylesheet" href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" />
 </body>
 </html>

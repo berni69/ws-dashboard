@@ -3,14 +3,38 @@
     {
       "idServidor": 1,
       "Descripcion": "elrond",
-      "Estado": "0",
+      "Estado": "OK",
       "Accion": ""
     },
     {
       "idServidor": 2,
       "Descripcion": "tamriel",
-      "Estado": "1",
+      "Estado": "FAIL",
+      "Accion": ""
+    },
+    {
+      "idServidor": 3,
+      "Descripcion": "bardok",
+      "Estado": "WORKING",
+      "Accion": ""
+    },
+    {
+      "idServidor": 4,
+      "Descripcion": "igneel",
+      "Estado": "WORKING",
+      "Accion": ""
+    },
+    {
+      "idServidor": 5,
+      "Descripcion": "morrigan",
+      "Estado": "OK",
+      "Accion": ""
+    },
+    {
+      "idServidor": 6,
+      "Descripcion": "astrid",
+      "Estado": "FAIL",
       "Accion": ""
     }
-	]
+  ]
 }

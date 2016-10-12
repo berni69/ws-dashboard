@@ -1,3 +1,8 @@
+String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    var s1 = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return target.replace(new RegExp(s1, 'g'), replacement);
+};
 $(function () {
     "use strict";
     
@@ -6,11 +11,11 @@ $(function () {
     var input = $('#input');
     var status = $('#status');
     var dashboard = $('#dashboard');
-    
+    var status_arr = ['OK', 'FAIL', 'WORKING'];
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
-    var myName = false;
+    var myName = 'user_'+ Math.random().toString(36).substr(2,5);
     
     // if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -26,13 +31,23 @@ $(function () {
         return;
     }
     
+    
+    
+    //Register UserName
+
+
     // open connection
     var connection = new WebSocket('ws://127.0.0.1:1337');
-    
     connection.onopen = function () {
         // first we want users to enter their names
-        input.removeAttr('disabled');
+       // input.removeAttr('disabled');
         status.text('Choose name:');
+        connection.send(JSON.stringify({
+            type: 'register',
+            data: myName
+        }));
+        input.removeAttr('disabled').focus();
+
     };
     
     connection.onerror = function (error) {
@@ -80,7 +95,7 @@ $(function () {
 					   
         } else if (json.type === 'update') { // it's a single message
             
-            addMessage(json.data.idUsuario, 'Updated server: ' + json.data.Descripcion,
+            addMessage(json.data.idUsuario, 'Updated server: ' + json.data.Descripcion + ' to "' + json.data.Estado + '"',
                        'green', new Date());
             updateEstado(json.data);
 
@@ -104,15 +119,6 @@ $(function () {
                 type: 'chat',
                 data: msg
             }
-            
-            
-            if (myName === false) {
-                // we know that the first message sent from a user their name
-                myName = msg;
-                test.type = 'register';
-				
-            }
-            
             // send the message as an ordinary text
             connection.send(JSON.stringify(test));
             console.log(test)
@@ -153,21 +159,39 @@ $(function () {
     var createDashboard = function (data) {
         dashboard.html('');
         $.each(data.servers, function (idx, value) {
-            var checkbox = '<input type="checkbox" class="srvStatus" data-idServidor="' + value.idServidor + '"' + (value.Estado == '1' ?  'checked' : '') + '/>';
-            var div = '<div class="col-md-4" id="srv_' + value.idServidor + '"> <div class="panel panel-default"><div class="panel-heading">' + value.Descripcion 
-             + '</div><div class="panel-body">Estado: ' + checkbox +'</div></div></div>';
-            dashboard.append(div);
+            var div = getDashTemplate();
+            for (var property in value) {
+                if (value.hasOwnProperty(property)) {
+                    div = div.replaceAll('{{'+property+'}}', value[property]);
+                }
+            }           
+            dashboard.append(div);  
+            $('#btns_' + value.idServidor + ' .btn').removeClass('active');
+            $('#btns_' + value.idServidor + ' .btn.'+ value.Estado).addClass('active');
         })
     }
     
-    var updateEstado = function (data) {
-        $("#srv_" + data.idServidor + "  input[type='checkbox']").prop('checked', data.Estado == "0" ? false : true);
+    var updateEstado = function (value) {
+        $('#btns_' + value.idServidor + ' .btn').removeClass('active');
+        $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
     };
     
-
-    $(document).on('change', '.srvStatus', function (ev) {
+    var getDashTemplate = function (){
+        return $('#srvTemplate').html();
+    }
+   
+    $(document).on('click', '[id^=btns_] .btn', function (ev) {
         var idServidor = $(this).attr('data-idServidor');
-        var Estado = $(this).is(':checked') ? 1 : 0;;
+        var Estado = '';
+        console.log('Clases boton '+idServidor+' '+$(this).attr('class'))
+        for (var i = 0; i < status_arr.length; i++) {
+
+            if ($(this).hasClass(status_arr[i])) {
+                Estado = status_arr[i];
+                break;
+            }
+        
+        }
         var obj = {
             type: 'update',
             data: {
@@ -180,8 +204,6 @@ $(function () {
 			
 		
     });
-	
-    
 	
 	
 	

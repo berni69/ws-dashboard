@@ -14,7 +14,10 @@ tmp/
 *.rar
 *.tar
 *.zip
-
+*.TMP
+*.exe
+*.bin
+*.dll
 
 #---------------------------------
 # IDE generated
@@ -26,6 +29,7 @@ tmp/
 .ntvs_*
 obj/*
 debug/*
+
 
 #---------------------------------
 # OS generated

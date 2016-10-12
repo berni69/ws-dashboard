@@ -133,7 +133,6 @@ wsServer.on('request', function (request) {
                 }
                 
                 msg.data.idUsuario = userName;                
-                console.log(data);
                 var json = JSON.stringify({
                     type: 'update',
                     data: msg.data
