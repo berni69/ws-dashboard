@@ -22,7 +22,10 @@ tmp/
 .idea/
 .project
 *.iml
-
+.vs/
+.ntvs_*
+obj/*
+debug/*
 
 #---------------------------------
 # OS generated

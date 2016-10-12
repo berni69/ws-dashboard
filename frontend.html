@@ -1,31 +1,51 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>WebSockets - Simple chat</title>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1">
+    <title>WS - Dashboard</title>   
+</head>
+<body>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
 
-        <style>
-        * { font-family:tahoma; font-size:12px; padding:0px; margin:0px; }
-        p { line-height:18px; }
-        div { width:500px; margin-left:auto; margin-right:auto;}
-        #content { padding:5px; background:#ddd; border-radius:5px; overflow-y: scroll;
-                   border:1px solid #CCC; margin-top:10px; height: 160px; }
-        #input { border-radius:2px; border:1px solid #ccc;
-                 margin-top:10px; padding:5px; width:400px;  }
-        #status { width:88px; display:block; float:left; margin-top:15px; }
-        </style>
-    </head>
-    <body>
-        <div id="content"></div>
-        <div>
-            <span id="status">Connecting...</span>
-            <input type="text" id="input" disabled="disabled" />
+
+
         </div>
-		<div id="dashboard">
-		
-		</div>
+        <!-- /#sidebar-wrapper -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">Dashboard</h1>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-        <script src="./frontend.js"></script>
-    </body>
+                        <div>
+                            <span id="status">Connecting...</span>
+                            <input type="text" id="input" disabled="disabled" />
+                        </div>
+                        <div class="row" id="dashboard"></div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading text-center logfont">Visualización de Logs</div>
+                            <div class="panel-body" id='logs'></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="./frontend.js"></script>
+    <link rel="stylesheet" href="./css/frontend.css" />
+</body>
 </html>

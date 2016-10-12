@@ -12,6 +12,7 @@ var http = require('http');
 var fs = require('fs');
 var data = require('./data/data');
 var url = require('url');
+var mime = require('mime');
 
 /**
  * Global variables
@@ -35,38 +36,32 @@ function htmlEntities(str) {
 // Array with some colors
 var colors = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
 // ... in random order
-colors.sort(function(a) {
+colors.sort(function (a) {
     return Math.random() > 0.5;
 });
 
 /**
  * HTTP server
  */
-var server = http.createServer(function(request, response) {
-    // Not important for us. We're writing WebSocket server, not HTTP server
-
+var server = http.createServer(function (request, response) {
+    /** If the request is not a websocket, we will serve it **/ 
     var pathname = url.parse(request.url).pathname;
     console.log('Request for ' + pathname + ' received.');
-    /*response.writeHead(200, {"Content-Type": "text/plain"});
-    response.write("Hello World");
-    response.end();*/
-
-
-    fs.readFile('.' + pathname, function(err, html) {
+    fs.readFile('.' + pathname, function (err, html) {
         if (err) {
             response.writeHead(400, {
                 'Content-Type': 'text/plain'
             });
             response.end('Not found');
         } else {
-            response.writeHead(200);
+
+            response.writeHead(200, { 'Content-Type': mime.lookup(pathname)});
             response.end(html);
         }
-        //console.log(request);
     });
 
 });
-server.listen(webSocketsServerPort, function() {
+server.listen(webSocketsServerPort, function () {
     console.log((new Date()) + ' Server is listening on port ' + webSocketsServerPort);
 });
 
@@ -81,9 +76,9 @@ var wsServer = new webSocketServer({
 
 // This callback function is called every time someone
 // tries to connect to the WebSocket server
-wsServer.on('request', function(request) {
+wsServer.on('request', function (request) {
     console.log((new Date()) + ' Connection from origin ' + request.origin + '.');
-
+    
     // accept connection - you should check 'request.origin' to make sure that
     // client is connecting from your website
     // (http://en.wikipedia.org/wiki/Same_origin_policy)
@@ -92,9 +87,9 @@ wsServer.on('request', function(request) {
     var index = clients.push(connection) - 1;
     var userName = false;
     var userColor = false;
-
+    
     console.log((new Date()) + ' Connection accepted.');
-
+    
     // send back chat history
     if (history.length > 0) {
         connection.sendUTF(JSON.stringify({
@@ -102,22 +97,21 @@ wsServer.on('request', function(request) {
             data: history
         }));
     }
-	if (typeof data !== 'undefined') {
+    if (typeof data !== 'undefined') {
         connection.sendUTF(JSON.stringify({
             type: 'initialStatus',
             data: data
         }));
     }
-	
-
+    
+    
     // user sent some message
-    connection.on('message', function(message) {
-		console.log((new Date()) + ' New connection: ' + message );
-	        if (message.type === 'utf8') {
-			var msg = JSON.parse(message.utf8Data);
-			console.log((new Date()) + ' New message as: ' + msg.type );
-			if(msg.type === 'register'){				
-				userName = htmlEntities(msg.data);
+    connection.on('message', function (message) {
+        if (message.type === 'utf8') {
+            var msg = JSON.parse(message.utf8Data);
+            console.log((new Date()) + ' New message as: ' + msg.type);
+            if (msg.type === 'register') {
+                userName = htmlEntities(msg.data);
                 // get random color and send it back to the user
                 userColor = colors.shift();
                 connection.sendUTF(JSON.stringify({
@@ -127,30 +121,29 @@ wsServer.on('request', function(request) {
                 console.log((new Date()) + ' User is known as: ' + userName +
                     ' with ' + userColor + ' color.');
 
-            } else if(msg.type === 'update'){
+            } else if (msg.type === 'update') {
                 var server = msg.data;
-				for (var i = 0, len = data.servers.length; i < len; i++) {
-					if(data.servers[i].idServidor == server.idServidor){
-						data.servers[i].Estado = server.Estado;
-						data.servers[i].Accion = server.Accion;
-						msg.data.Descripcion = data.servers[i].Descripcion;
-						break;
-					}
-				}		
-				
-				msg.data.idUsuario = userName;
-				
-				console.log(data);
-				var json = JSON.stringify({
+                for (var i = 0, len = data.servers.length; i < len; i++) {
+                    if (data.servers[i].idServidor == server.idServidor) {
+                        data.servers[i].Estado = server.Estado;
+                        data.servers[i].Accion = server.Accion;
+                        msg.data.Descripcion = data.servers[i].Descripcion;
+                        break;
+                    }
+                }
+                
+                msg.data.idUsuario = userName;                
+                console.log(data);
+                var json = JSON.stringify({
                     type: 'update',
                     data: msg.data
                 });
-				
-				for (var i = 0; i < clients.length; i++) {
+                
+                for (var i = 0; i < clients.length; i++) {
                     clients[i].sendUTF(json);
                 }
-			}			
-			else if(msg.type === 'chat'){ // log and broadcast the message
+            }			
+            else if (msg.type === 'chat') { // log and broadcast the message
                 console.log((new Date()) + ' Received Message from ' +
                     userName + ': ' + msg.data);
                 // we want to keep history of all sent messages
@@ -162,7 +155,7 @@ wsServer.on('request', function(request) {
                 };
                 history.push(obj);
                 history = history.slice(-100);
-
+                
                 // broadcast message to all connected clients
                 var json = JSON.stringify({
                     type: 'message',
@@ -174,9 +167,9 @@ wsServer.on('request', function(request) {
             }
         }
     });
-
+    
     // user disconnected
-    connection.on('close', function(connection) {
+    connection.on('close', function (connection) {
         if (userName !== false && userColor !== false) {
             console.log((new Date()) + ' Peer ' +
                 connection.remoteAddress + ' disconnected.');

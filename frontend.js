@@ -1,44 +1,48 @@
 $(function () {
     "use strict";
-
+    
     // for better performance - to avoid searching in DOM
-    var content = $('#content');
+    var content = $('#logs');
     var input = $('#input');
     var status = $('#status');
     var dashboard = $('#dashboard');
-
+    
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
     var myName = false;
-
+    
     // if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
-
+    
     // if browser doesn't support WebSocket, just show some notification and exit
     if (!window.WebSocket) {
-        content.html($('<p>', { text: 'Sorry, but your browser doesn\'t '
-                                    + 'support WebSockets.'} ));
+        content.html($('<p>', {
+            text: 'Sorry, but your browser doesn\'t ' 
+                                    + 'support WebSockets.'
+        }));
         input.hide();
         $('span').hide();
         return;
     }
-
+    
     // open connection
     var connection = new WebSocket('ws://127.0.0.1:1337');
-
+    
     connection.onopen = function () {
         // first we want users to enter their names
         input.removeAttr('disabled');
         status.text('Choose name:');
     };
-
+    
     connection.onerror = function (error) {
         // just in there were some problems with conenction...
-        content.html($('<p>', { text: 'Sorry, but there\'s some problem with your '
-                                    + 'connection or the server is down.' } ));
+        content.html($('<p>', {
+            text: 'Sorry, but there\'s some problem with your ' 
+                                    + 'connection or the server is down.'
+        }));
     };
-
+    
     // most important part - incoming messages
     connection.onmessage = function (message) {
         // try to parse JSON message. Because we know that the server always returns
@@ -50,8 +54,8 @@ $(function () {
             console.log('This doesn\'t look like a valid JSON: ', message.data);
             return;
         }
-		console.log("Recibido" + message.data)
-
+        console.log("Recibido" + message.data)
+        
         // NOTE: if you're not sure about the JSON structure
         // check the server source code above
         if (json.type === 'color') { // first response from the server with user's color
@@ -61,54 +65,57 @@ $(function () {
             // from now user can start sending messages
         } else if (json.type === 'history') { // entire message history
             // insert every single message to the chat window
-            for (var i=0; i < json.data.length; i++) {
+            for (var i = 0; i < json.data.length; i++) {
                 addMessage(json.data[i].author, json.data[i].text,
                            json.data[i].color, new Date(json.data[i].time));
             }
-        }else if (json.type === 'initialStatus') { // entire message history
+        } else if (json.type === 'initialStatus') { // entire message history
             // insert every single message to the chat window
-			createDashboard(json.data);
+            createDashboard(json.data);
  
         } else if (json.type === 'message') { // it's a single message
             input.removeAttr('disabled'); // let the user write another message
             addMessage(json.data.author, json.data.text,
                        json.data.color, new Date(json.data.time));
 					   
-		} else if (json.type === 'update') { // it's a single message
+        } else if (json.type === 'update') { // it's a single message
+            
+            addMessage(json.data.idUsuario, 'Updated server: ' + json.data.Descripcion,
+                       'green', new Date());
+            updateEstado(json.data);
 
-            addMessage(json.data.idUsuario,'Updated server: ' + json.data.Descripcion,
-                       'green', new Date(json.data.time));
+
         } else {
             console.log('Hmm..., I\'ve never seen JSON like this: ', json);
         }
     };
-
+    
     /**
      * Send mesage when user presses Enter key
      */
-    input.keydown(function(e) {
+    input.keydown(function (e) {
         if (e.keyCode === 13) {
             var msg = $(this).val();
             if (!msg) {
                 return;
             }
-			
-			var test={
-				type:'chat',
-				data:msg
-			}
-			
-			
-			if (myName === false) {
-				// we know that the first message sent from a user their name
-                myName = msg;	
-				test.type='register';
+            
+            var test = {
+                type: 'chat',
+                data: msg
+            }
+            
+            
+            if (myName === false) {
+                // we know that the first message sent from a user their name
+                myName = msg;
+                test.type = 'register';
 				
             }
-			
+            
             // send the message as an ordinary text
             connection.send(JSON.stringify(test));
-			console.log(test)
+            console.log(test)
             $(this).val('');
             // disable the input field to make the user wait until server
             // sends back response
@@ -118,57 +125,63 @@ $(function () {
             
         }
     });
-
+    
     /**
      * This method is optional. If the server wasn't able to respond to the
      * in 3 seconds then show some error message to notify the user that
      * something is wrong.
      */
-    setInterval(function() {
+    setInterval(function () {
         if (connection.readyState !== 1) {
             status.text('Error');
-            input.attr('disabled', 'disabled').val('Unable to comminucate '
+            input.attr('disabled', 'disabled').val('Unable to comminucate ' 
                                                  + 'with the WebSocket server.');
         }
     }, 3000);
-
+    
     /**
      * Add message to the chat window
      */
     function addMessage(author, message, color, dt) {
         content.prepend('<p><span style="color:' + color + '">' + author + '</span> @ ' +
-             + (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':'
-             + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes())
+             +(dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':' 
+             + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes()) 
              + ': ' + message + '</p>');
     }
-	
-	/** Create innitial dashboard **/
-	var createDashboard = function(data){
-		dashboard.html('');
-		$.each(data.servers,function(idx,value){
-			var checkbox = '<input type="checkbox" class="srvStatus" data-idServidor="'+value.idServidor+'"' + (value.Estado == '1' ?  'checked' : '') +'/>'
-			var div = '<div id="srv_'+value.idServidor+'">'+value.Descripcion+checkbox+'</div>';
-			dashboard.append(div);
-		})		
-	}
-	
-	$(document).on('change','.srvStatus', function(ev){
-			var idServidor = $(this).attr('data-idServidor');
-			var Estado = $(this).is(':checked') ? 1 : 0;;
-			var obj={
-				type:'update',
-				data:{
-					idServidor:idServidor,
-					Estado:Estado,
-					Accion:''
-				}
-			}
-            connection.send(JSON.stringify(obj));
+    
+    /** Create innitial dashboard **/
+    var createDashboard = function (data) {
+        dashboard.html('');
+        $.each(data.servers, function (idx, value) {
+            var checkbox = '<input type="checkbox" class="srvStatus" data-idServidor="' + value.idServidor + '"' + (value.Estado == '1' ?  'checked' : '') + '/>';
+            var div = '<div class="col-md-4" id="srv_' + value.idServidor + '"> <div class="panel panel-default"><div class="panel-heading">' + value.Descripcion 
+             + '</div><div class="panel-body">Estado: ' + checkbox +'</div></div></div>';
+            dashboard.append(div);
+        })
+    }
+    
+    var updateEstado = function (data) {
+        $("#srv_" + data.idServidor + "  input[type='checkbox']").prop('checked', data.Estado == "0" ? false : true);
+    };
+    
+
+    $(document).on('change', '.srvStatus', function (ev) {
+        var idServidor = $(this).attr('data-idServidor');
+        var Estado = $(this).is(':checked') ? 1 : 0;;
+        var obj = {
+            type: 'update',
+            data: {
+                idServidor: idServidor,
+                Estado: Estado,
+                Accion: ''
+            }
+        }
+        connection.send(JSON.stringify(obj));
 			
 		
-	});
+    });
 	
-	
+    
 	
 	
 	
