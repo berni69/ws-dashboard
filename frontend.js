@@ -12,6 +12,7 @@ $(function () {
     var status = $('#status');
     var dashboard = $('#dashboard');
     var status_arr = ['OK', 'FAIL', 'WORKING'];
+    var status_class = ['panel-success', 'panel-danger', 'panel-primary'];
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
@@ -152,6 +153,7 @@ $(function () {
         dashboard.html('');
         $.each(data.servers, function (idx, value) {
             //Get server template and process it replacing {{key}} by the value
+            value.statusClass = status_class[status_arr.indexOf(value.Estado)];
             var div = getDashTemplate(value);
             dashboard.append(div);
             $('#btns_' + value.idServidor + ' .btn').removeClass('active');
@@ -162,6 +164,9 @@ $(function () {
     var updateEstado = function (value) {
         $('#btns_' + value.idServidor + ' .btn').removeClass('active');
         $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
+        var panel = $('#srv_' + value.idServidor + ' .panel');
+        panel.removeClass(status_class.join(' '));
+        panel.addClass(status_class[status_arr.indexOf(value.Estado)]);
     };
     /** 
      * Function used to load the template, for each value in @ it will search the mustache {{@}} of the key and it will be replaced by it's value
