@@ -1,4 +1,4 @@
-String.prototype.replaceAll = function (search, replacement) {
+﻿String.prototype.replaceAll = function (search, replacement) {
     var target = this;
     var s1 = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return target.replace(new RegExp(s1, 'g'), replacement);
@@ -33,7 +33,7 @@ $(function () {
     }
     
     // open connection
-    var connection = new WebSocket('ws://127.0.0.1:1337');
+    var connection = new WebSocket('ws://' + document.location.hostname + ':1337');
     connection.onopen = function () {
         registerUser();
     };
@@ -111,7 +111,7 @@ $(function () {
         var idServidor = $(this).attr('data-idServidor');
         var Estado = '';
         //Find the next status of the server
-        for (var i = 0; i < status_arr.length; i++) {            
+        for (var i = 0; i < status_arr.length; i++) {
             if ($(this).hasClass(status_arr[i])) {
                 Estado = status_arr[i];
                 break;
