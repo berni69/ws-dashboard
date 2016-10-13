@@ -15,7 +15,7 @@ $(function () {
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
-    var myName = 'user_'+ Math.random().toString(36).substr(2,5);
+    var myName = 'user_' + Math.random().toString(36).substr(2, 5);
     
     // if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -31,23 +31,10 @@ $(function () {
         return;
     }
     
-    
-    
-    //Register UserName
-
-
     // open connection
     var connection = new WebSocket('ws://127.0.0.1:1337');
     connection.onopen = function () {
-        // first we want users to enter their names
-       // input.removeAttr('disabled');
-        status.text('Choose name:');
-        connection.send(JSON.stringify({
-            type: 'register',
-            data: myName
-        }));
-        input.removeAttr('disabled').focus();
-
+        registerUser();
     };
     
     connection.onerror = function (error) {
@@ -71,21 +58,15 @@ $(function () {
         }
         console.log("Recibido" + message.data)
         
-        // NOTE: if you're not sure about the JSON structure
-        // check the server source code above
-        if (json.type === 'color') { // first response from the server with user's color
-            myColor = json.data;
-            status.text(myName + ': ').css('color', myColor);
-            input.removeAttr('disabled').focus();
+        if (json.type === 'color') {
+            // first response from the server with user's color
+            setColor(json.data);
             // from now user can start sending messages
-        } else if (json.type === 'history') { // entire message history
-            // insert every single message to the chat window
-            for (var i = 0; i < json.data.length; i++) {
-                addMessage(json.data[i].author, json.data[i].text,
-                           json.data[i].color, new Date(json.data[i].time));
-            }
-        } else if (json.type === 'initialStatus') { // entire message history
-            // insert every single message to the chat window
+        } else if (json.type === 'history') {
+            // entire message history
+            appendHistory(json.data);
+        } else if (json.type === 'initialStatus') {
+            //We need create the dashboard in order to interact with it
             createDashboard(json.data);
  
         } else if (json.type === 'message') { // it's a single message
@@ -114,22 +95,33 @@ $(function () {
             if (!msg) {
                 return;
             }
-            
-            var test = {
-                type: 'chat',
-                data: msg
-            }
-            // send the message as an ordinary text
-            connection.send(JSON.stringify(test));
-            console.log(test)
+            sendChatMsg(msg);
             $(this).val('');
             // disable the input field to make the user wait until server
             // sends back response
             input.attr('disabled', 'disabled');
-
-            
-            
         }
+    });
+    /**
+     * Send mesage when change the state of any server
+     */
+
+    $(document).on('click', '[id^=btns_] .btn', function (ev) {
+        var idServidor = $(this).attr('data-idServidor');
+        var Estado = '';
+        //Find the next status of the server
+        for (var i = 0; i < status_arr.length; i++) {            
+            if ($(this).hasClass(status_arr[i])) {
+                Estado = status_arr[i];
+                break;
+            }
+        }
+        sendServerUpdate({
+            idServidor: idServidor,
+            Estado: Estado,
+            Accion: ''
+        })
+
     });
     
     /**
@@ -155,19 +147,15 @@ $(function () {
              + ': ' + message + '</p>');
     }
     
-    /** Create innitial dashboard **/
+    /** Create initial dashboard **/
     var createDashboard = function (data) {
         dashboard.html('');
         $.each(data.servers, function (idx, value) {
-            var div = getDashTemplate();
-            for (var property in value) {
-                if (value.hasOwnProperty(property)) {
-                    div = div.replaceAll('{{'+property+'}}', value[property]);
-                }
-            }           
-            dashboard.append(div);  
+            //Get server template and process it replacing {{key}} by the value
+            var div = getDashTemplate(value);
+            dashboard.append(div);
             $('#btns_' + value.idServidor + ' .btn').removeClass('active');
-            $('#btns_' + value.idServidor + ' .btn.'+ value.Estado).addClass('active');
+            $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
         })
     }
     
@@ -175,36 +163,61 @@ $(function () {
         $('#btns_' + value.idServidor + ' .btn').removeClass('active');
         $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
     };
-    
-    var getDashTemplate = function (){
-        return $('#srvTemplate').html();
-    }
-   
-    $(document).on('click', '[id^=btns_] .btn', function (ev) {
-        var idServidor = $(this).attr('data-idServidor');
-        var Estado = '';
-        console.log('Clases boton '+idServidor+' '+$(this).attr('class'))
-        for (var i = 0; i < status_arr.length; i++) {
-
-            if ($(this).hasClass(status_arr[i])) {
-                Estado = status_arr[i];
-                break;
+    /** 
+     * Function used to load the template, for each value in @ it will search the mustache {{@}} of the key and it will be replaced by it's value
+     *  @value object used to find and replace mustaches in the template
+     */
+    var getDashTemplate = function (values) {
+        var div = $('#srvTemplate').html();
+        for (var property in values) {
+            if (values.hasOwnProperty(property)) {
+                div = div.replaceAll('{{' + property + '}}', values[property]);
             }
-        
         }
+        return div;
+    }
+    
+    /** Function used to register the user the first time **/
+    
+    var registerUser = function () {
+        connection.send(JSON.stringify({
+            type: 'register',
+            data: myName
+        }));
+        input.removeAttr('disabled').focus();
+    }
+    /** Function used to append the log history **/
+    var appendHistory = function (data) {
+        // insert every single message to the chat window
+        for (var i = 0; i < data.length; i++) {
+            addMessage(data[i].author, data[i].text,
+                           data[i].color, new Date(data[i].time));
+        }
+    };
+    
+    /** Function used to set the color of the user **/
+    var setColor = function (color) {
+        myColor = color;
+        status.text(myName + ': ').css('color', myColor);
+        input.removeAttr('disabled').focus();
+    }
+    
+    /** Function used to send a server update **/
+    var sendServerUpdate = function (data) {
         var obj = {
             type: 'update',
-            data: {
-                idServidor: idServidor,
-                Estado: Estado,
-                Accion: ''
-            }
+            data: data
         }
         connection.send(JSON.stringify(obj));
-			
-		
-    });
-	
-	
-	
+    };
+    
+    /** Function used to send chat msg **/
+    var sendChatMsg = function (msg) {
+        // Send the chat message
+        connection.send(JSON.stringify({
+            type: 'chat',
+            data: msg
+        }));
+    };
+
 });
