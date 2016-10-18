@@ -1,10 +1,10 @@
 ﻿/** Example class **/
 module.exports = {
 	db_connection : {
-		host: 'localhost',
-		user: 'root',
-		password: '',
-		database: 'address_book'
+		host: 'stormdb.globalia.com',
+		user: 'tiadm',
+		password: 'tiadm123',
+		database: 'TIADM'
 	},
 	demo: false
 };

@@ -1,14 +1,23 @@
 var fs = require('fs');
 var config = require('./config.js');
-var db = require('./mysqlconn.js');
+var connection = require('./mysqlconn.js');
 module.exports = {
-  getData: function () {
+  getData: function (cb) {
 
 	  if (config.demo) {
-		  return JSON.parse(fs.readFileSync('./data/example.json', 'utf8'));
+
+		  fs.readFile('./data/example.json', { encoding: 'utf8' }, function (err, data) {
+			  if (err) throw err;
+			  cb(JSON.parse(data));
+
+		  });
 	  }
 	  else {
-		  console.log(db());
+		  var db = connection();
+		  db.query("SELECT idGranja as idServidor, Descripcion, 0 as Estado, '' as Accion FROM TB_Granjas order by OrdenReinicio", function (err, rows) {
+			  if (err) throw err;
+			  cb({ 'servers' : rows });
+		  });
 		  
 	  }
   },

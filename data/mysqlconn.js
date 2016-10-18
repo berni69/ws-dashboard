@@ -6,9 +6,9 @@ module.exports = function () {
 		db = mysql.createConnection(config.db_connection);
 		db.connect(function (err) {
 			if (!err) {
-				console.log("Database is connected ... nn");
+				console.log("Database is connected ... nn" + err);
 			} else {
-				console.log("Error connecting database ... nn");
+				console.log("Error connecting database ... nn" + err);
 			}
 		});
 	}

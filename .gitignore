@@ -37,3 +37,8 @@ debug/*
 __MACOSX/
 .DS_Store
 Thumbs.db
+
+#---------------------------------
+# Config files
+#---------------------------------
+data/config.js

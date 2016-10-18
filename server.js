@@ -10,7 +10,7 @@ var webSocketsServerPort = 1337;
 var webSocketServer = require('websocket').server;
 var http = require('http');
 var fs = require('fs');
-var data = require('./data/data');
+var data_mod = require('./data/data');
 var url = require('url');
 var mime = require('mime');
 
@@ -22,9 +22,12 @@ var history = [];
 // list of currently connected clients (users)
 var clients = [];
 
+var data = [];
 
 // List of data to draw dashboard
-var data = data.getData();
+data_mod.getData(function (d) {
+	data = d;
+});
 /**
  * Helper function for escaping input strings
  */
