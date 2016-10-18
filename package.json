@@ -1,33 +1,35 @@
 {
-  "name": "ws-dashboard",
-  "version": "0.0.1",
-  "description": "websocket dashboard based on ",
-  "homepage": "www.bitsdelocos.es",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "author": {
-    "name": "Bernat Mut",
-    "email": "berni.emerald@gmail.com"
-  },
-  "license": "MIT",
-  "private": true,
-  "engines": {
-    "node": ">=6.4"
-  },
-  "scripts": {
-    "start": "node server.js",
-    "lint": "eslint -c .eslintrc.yml *.js"
-  },
-  "dependencies": {
-    "websocket": "1.0.23",
-    "mime": "~1.3.4"
+    "author": {
+        "name": "Bernat Mut",
+        "email": "berni.emerald@gmail.com"
+    },
+    "dependencies": {
+        "websocket": "1.0.23",
+        "mime": "~1.3.4",
+        "mysql": "^2.5.4"
 
-  },
-  "devDependencies": {
-    "eslint": "~3.6.0",
-    "babel-core": "~6.14.0",
-    "babel-eslint": "~6.1.2"
-  }
+    },
+    "description": "websocket dashboard based on ",
+    "devDependencies": {
+        "eslint": "~3.6.0",
+        "babel-core": "~6.14.0",
+        "babel-eslint": "~6.1.2",
+        "nodemon": "~1.11.0"
+    },
+    "engines": {
+        "node": ">=6.4"
+    },
+    "homepage": "www.bitsdelocos.es",
+    "license": "MIT",
+    "name": "ws-dashboard",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "scripts": {
+        "start": "nodemon server.js",
+        "lint": "eslint -c .eslintrc.yml *.js"
+    },
+    "version": "0.0.1"
 }
