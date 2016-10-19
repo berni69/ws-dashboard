@@ -54,7 +54,7 @@
     </div>
     <template id="chatMsgOtherTemplate">
         <li class="other">
-            <div class="avatar">        <img src="{{img}}" />      </div>
+            <div class="avatar">        <img src="/images/avatars/{{img}}" />      </div>
             <div class="messages">
                 <p>{{message}}</p>
                 <time datetime="{{time}}">{{time}}</time>
@@ -63,7 +63,7 @@
     </template>
     <template id="chatMsgOwnTemplate">
         <li class="self">
-            <div class="avatar">        <img src="{{img}}" />      </div>
+            <div class="avatar">        <img src="/images/avatars/{{img}}" />      </div>
             <div class="messages">
                 <p>{{message}}</p>
                 <time datetime="{{time}}">{{time}}</time>
@@ -71,13 +71,13 @@
         </li>
     </template>
     <template id="srvTemplate">
-        <div class="col-md-4" id="srv_{{idServidor}}">
+        <div class="col-md-4" id="srv_{{hashCode}}">
             <div class="panel panel-default {{statusClass}}">
                 <div class="panel-heading">
                     {{Descripcion}}
                 </div>
                 <div class="panel-body">
-                    <div class="btn-group" id="btns_{{idServidor}}" role="group">
+                    <div class="btn-group" id="btns_{{hashCode}}" role="group">
                         <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default OK"><i class="fa fa-check" aria-hidden="true"></i></button>
                         <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default WORKING"><i class="fa fa-cog fa-spin fa-fw"></i></button>
                         <button type="button" data-idServidor="{{idServidor}}" class="btn btn-default FAIL"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></button>

@@ -5,7 +5,7 @@ $(function () {
 	
 	var tmplOther = $('#chatMsgOtherTemplate').html();
 	var tmplOwn = $('#chatMsgOwnTemplate').html();
-	var my_username = ''
+	var myUser = new User();
 	var minimize = function () {
 		$('.module').removeClass('expanded');
 		$('.module').addClass('collapsed');
@@ -26,7 +26,7 @@ $(function () {
 
 	var appendMessage = function (args) {
 		var tmpl = tmplOther;
-		if (args.idUsuario == my_username) {
+		if (args.idUsuario == myUser.idUsuario) {
 			tmpl = tmplOwn;
 		}
 		var message = tmpl.processTemplate(args);
@@ -34,8 +34,8 @@ $(function () {
 		$('.module .discussion').animate({ scrollTop: $('.module .discussion').prop('scrollHeight')},500);
 	}
 
-	var setUsername = function (username) {
-		my_username = username;
+	var setUsername = function (user) {
+		myUser = user;
 	}
 
 	var sendMessage = function (args) {

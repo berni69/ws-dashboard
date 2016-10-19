@@ -42,6 +42,12 @@ var colors = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
 colors.sort(function (a) {
     return Math.random() > 0.5;
 });
+// Array with some colors
+var avatars = ['medium_Avatar-1.png','medium_Avatar-10.png', 'medium_Avatar-11.png', 'medium_Avatar-12.png', 'medium_Avatar-13.png', 'medium_Avatar-14.png', 'medium_Avatar-15.png', 'medium_Avatar-16.png', 'medium_Avatar-17.png', 'medium_Avatar-18.png', 'medium_Avatar-19.png', 'medium_Avatar-2.png', 'medium_Avatar-20.png', 'medium_Avatar-21.png', 'medium_Avatar-22.png', 'medium_Avatar-3.png', 'medium_Avatar-4.png', 'medium_Avatar-5.png', 'medium_Avatar-6.png', 'medium_Avatar-7.png', 'medium_Avatar-8.png', 'medium_Avatar-9.png', 'medium_Avatar-addnew.png', 'medium_Avatar-default.png', 'medium_Avatar-unknown.png', 'medium_cloud.png', 'medium_codegeist.png', 'medium_config.png', 'medium_disc.png', 'medium_eamesbird.png', 'medium_finance.png', 'medium_hand.png', 'medium_jm_black.png', 'medium_jm_brown.png', 'medium_jm_orange.png', 'medium_jm_red.png', 'medium_jm_white.png', 'medium_jm_yellow.png', 'medium_kangaroo.png', 'medium_monster.png', 'medium_new_monster.png', 'medium_power.png', 'medium_rainbow.png', 'medium_refresh.png', 'medium_rocket.png', 'medium_servicedesk.png', 'medium_settings.png', 'medium_storm.png', 'medium_travel.png'];
+// ... in random order
+avatars.sort(function (a) {
+	return Math.random() > 0.5;
+});
 
 /**
  * HTTP server
@@ -88,9 +94,9 @@ wsServer.on('request', function (request) {
     var connection = request.accept(null, request.origin);
     // we need to know client index to remove them on 'close' event
     var index = clients.push(connection) - 1;
-    var userName = false;
-    var userColor = false;
-    
+	var User = null;
+
+	    
     console.log((new Date()) + ' Connection accepted.');
     
     // send back chat history
@@ -113,16 +119,22 @@ wsServer.on('request', function (request) {
         if (message.type === 'utf8') {
             var msg = JSON.parse(message.utf8Data);
             console.log((new Date()) + ' New message as: ' + msg.type);
-            if (msg.type === 'register') {
-                userName = htmlEntities(msg.data);
+			if (msg.type === 'register') {
+				var idUsuario = htmlEntities(msg.data);
                 // get random color and send it back to the user
-                userColor = colors.shift();
+				var userColor = colors.shift();
+				var userAvatar = avatars.shift();
+				User = {
+					idUsuario : idUsuario,
+					avatar : userAvatar,
+					color : userColor
+				};
                 connection.sendUTF(JSON.stringify({
-                    type: 'color',
-                    data: userColor
-                }));
-                console.log((new Date()) + ' User is known as: ' + userName +
-                    ' with ' + userColor + ' color.');
+					type: 'registerResponse',
+					data: User
+				}));
+				console.log((new Date()) + ' User is known as: ' + User.idUsuario +
+					' with ' + User.color + ' color.');
 
             } else if (msg.type === 'update') {
                 var server = msg.data;
@@ -134,8 +146,8 @@ wsServer.on('request', function (request) {
                         break;
                     }
                 }
-                
-                msg.data.idUsuario = userName;                
+
+				msg.data.User = User;                
                 var json = JSON.stringify({
                     type: 'update',
                     data: msg.data
@@ -146,14 +158,13 @@ wsServer.on('request', function (request) {
                 }
             }			
             else if (msg.type === 'chat') { // log and broadcast the message
-                console.log((new Date()) + ' Received Message from ' +
-                    userName + ': ' + msg.data);
+				console.log((new Date()) + ' Received Message from ' +
+					User.idUsuario + ': ' + msg.data);
                 // we want to keep history of all sent messages
                 var obj = {
                     time: (new Date()).getTime(),
                     text: htmlEntities(msg.data),
-                    author: userName,
-                    color: userColor
+					User: User,
                 };
                 history.push(obj);
                 history = history.slice(-100);
@@ -171,14 +182,16 @@ wsServer.on('request', function (request) {
     });
     
     // user disconnected
-    connection.on('close', function (connection) {
-        if (userName !== false && userColor !== false) {
+	connection.on('close', function (connection) {
+		if (User !== null) {
             console.log((new Date()) + ' Peer ' +
                 connection.remoteAddress + ' disconnected.');
             // remove user from the list of connected clients
             clients.splice(index, 1);
             // push back user's color to be reused by another user
-            colors.push(userColor);
+			colors.push(User.color);
+			avatars.push(User.avatar)
+
         }
     });
 

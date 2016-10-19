@@ -12,8 +12,8 @@ $(function () {
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
-    var myName = 'user_' + Math.random().toString(36).substr(2, 5);
-	ns_chat.init(myName);
+	var myName = 'user_' + Math.random().toString(36).substr(2, 5);
+	var myUser = null;
 	// if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
     
@@ -55,9 +55,14 @@ $(function () {
         }
         console.log("Recibido" + message.data)
         
-        if (json.type === 'color') {
+        if (json.type === 'registerResponse') {
             // first response from the server with user's color
-            setColor(json.data);
+			setColor(json.data.color);
+
+			myUser = new User(json.data);
+			ns_chat.init(myUser); 
+
+
             // from now user can start sending messages
         } else if (json.type === 'history') {
             // entire message history
@@ -67,13 +72,13 @@ $(function () {
             createDashboard(json.data);
  
         } else if (json.type === 'message') { // it's a single message
-            input.removeAttr('disabled'); // let the user write another message
-			ns_chat.appendMessage({ idUsuario: json.data.author, message: json.data.text, time: new Date(json.data.time) });
+			input.removeAttr('disabled'); // let the user write another message
+			ns_chat.appendMessage({ idUsuario: json.data.User.idUsuario, message: json.data.text, time: new Date(json.data.time), img: json.data.User.avatar});
 								   
         } else if (json.type === 'update') { // it's a single message
             
-            addMessage(json.data.idUsuario, 'Updated server: ' + json.data.Descripcion + ' to "' + json.data.Estado + '"',
-                       'green', new Date());
+			addMessage(json.data.User.idUsuario, 'Updated server: ' + json.data.Descripcion + ' to "' + json.data.Estado + '"',
+				json.data.User.color, new Date());
             updateEstado(json.data);
 
 
@@ -148,18 +153,20 @@ $(function () {
         dashboard.html('');
         $.each(data.servers, function (idx, value) {
             //Get server template and process it replacing {{key}} by the value
-            value.statusClass = status_class[status_arr.indexOf(value.Estado)];
+			value.statusClass = status_class[status_arr.indexOf(value.Estado)];
+			value['hashCode'] = value.idServidor.hashCode();
             var div = getDashTemplate(value);
             dashboard.append(div);
-            $('#btns_' + value.idServidor + ' .btn').removeClass('active');
-            $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
+			$('#btns_' + value.hashCode + ' .btn').removeClass('active');
+			$('#btns_' + value.hashCode + ' .btn.' + value.Estado).addClass('active');
         })
     }
     
-    var updateEstado = function (value) {
-        $('#btns_' + value.idServidor + ' .btn').removeClass('active');
-        $('#btns_' + value.idServidor + ' .btn.' + value.Estado).addClass('active');
-        var panel = $('#srv_' + value.idServidor + ' .panel');
+	var updateEstado = function (value) {
+		var hash = value.idServidor.hashCode()
+		$('#btns_' + hash + ' .btn').removeClass('active');
+		$('#btns_' + hash + ' .btn.' + value.Estado).addClass('active');
+		var panel = $('#srv_' + hash + ' .panel');
         panel.removeClass(status_class.join(' '));
         panel.addClass(status_class[status_arr.indexOf(value.Estado)]);
     };
@@ -186,15 +193,14 @@ $(function () {
         // insert every single message to the chat window
 		for (var i = 0; i < data.length; i++) {
 
-			ns_chat.appendMessage({ idUsuario: data[i].author, message: data[i].text, time: new Date(data[i].time) });
+			ns_chat.appendMessage({ idUsuario: data[i].User.idUsuario, message: data[i].text, time: new Date(data[i].time), img: data[i].User.avatar });
 
         }
     };
     
     /** Function used to set the color of the user **/
-    var setColor = function (color) {
-        myColor = color;
-        status.text(myName + ': ').css('color', myColor);
+	var setColor = function (color) {
+        status.text(myName + ': ').css('color', color);
         input.removeAttr('disabled').focus();
     }
     
