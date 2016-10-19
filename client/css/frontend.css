@@ -1,10 +1,4 @@
-﻿/*!
- * Start Bootstrap - Simple Sidebar (http://startbootstrap.com/)
- * Copyright 2013-2016 Start Bootstrap
- * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
- */
-
- body {
+﻿ body {
     overflow-x: hidden;
  }
 
@@ -134,20 +128,19 @@
 
 //Chat
 
-@import url(http://weloveiconfonts.com/api/?family=typicons);
 [class*="typicons-"]:before {
   font-family: 'Typicons', sans-serif;
 }
 
 
 #chat-wrapper {
-    bottom: 40px;
+    bottom: 0px;
     right: 0;
     position: fixed;
 }
 .module {  
   width: 300px;
-  margin: 20px auto;
+  margin: 0px auto;
 }
 
 .top-bar {
@@ -174,7 +167,7 @@
 }
 .top-bar .right {
   float: right;
-  padding-top: 5px;
+  margin-right: 5px;
 }
 .top-bar > * {
   position: relative;
@@ -196,6 +189,8 @@
   background: #e5e5e5;
   margin: 0;
   padding: 0 0 50px 0;
+  max-height:370px;
+  overflow-y: auto;
 }
 .discussion li {
   padding: 0.5rem;
@@ -270,3 +265,33 @@
     opacity: 0.5;
   }
 }
+.minimize:hover, .maximize:hover {
+    cursor:pointer;
+}
+.module.collapsed .minimize{
+    display:none;
+}
+.module.collapsed .maximize{
+    display:inline-block;
+}
+
+.module.expanded .minimize{
+    display:inline-block;
+}
+.module.expanded .maximize{
+    display:none;
+}
+
+.module.expanded .discussion{
+    display:block;
+}
+.module.collapsed .discussion{
+    display:none;
+}
+.module.expanded .inputChat{
+    display:block;
+}
+.module.collapsed .inputChat{
+    display:none;
+}
+

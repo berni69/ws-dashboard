@@ -20,11 +20,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">Dashboard</h1>
-
-                        <div>
-                            <span id="status">Connecting...</span>
-                            <input type="text" id="input" placeholder="Text me" disabled="disabled" />
-                        </div>
+                        <span id="status">Connecting...</span>
                         <div class="row" id="dashboard"></div>
 
                         <div class="panel panel-default">
@@ -41,44 +37,39 @@
 
     <!-- CHAT -->
     <div id="chat-wrapper">
-        <section class="module">
+        <section class="module expanded">
             <header class="top-bar">
                 <div class="left">
                     <span class="icon typicons-message"></span>
-                    <h1>Hangouts</h1>
+                    <h1>Chat</h1>
                 </div>
-                <div class="right">      <span class="icon typicons-minus"></span>      <span class="icon typicons-times"></span>    </div>
+                <div class="right">      <span class="minimize"><i class="fa fa-minus" aria-hidden="true"></i></span> <span class="maximize"><i class="fa fa-plus" aria-hidden="true"></i></span>   </div>
             </header>
             <ol class="discussion">
-                <li class="other">
-                    <div class="avatar">        <img src="http://s3-us-west-2.amazonaws.com/s.cdpn.io/5/profile/profile-80_9.jpg" />      </div>
-                    <div class="messages">
-                        <p>yeah, they do early flights cause they connect with big airports.  they wanna get u to your connection</p>
-                        <time datetime="2009-11-13T20:00">Timothy • 51 min</time>
-                    </div>
-                </li>
-                <li class="self">
-                    <div class="avatar">        <img src="http://s3-us-west-2.amazonaws.com/s.cdpn.io/3/profile/profile-80_20.jpg" />      </div>
-                    <div class="messages">
-                        <p>That makes sense.</p>
-                        <p>It's a pretty small airport.</p>
-                        <time datetime="2009-11-13T20:14">37 mins</time>
-                    </div>
-                </li>
-                <li class="other">
-                    <div class="avatar">        <img src="http://s3-us-west-2.amazonaws.com/s.cdpn.io/5/profile/profile-80_9.jpg" />      </div>
-                    <div class="messages">
-                        <p>that mongodb thing looks good, huh?</p>
-                        <p>          tiny master db, and huge document store</p>
-                    </div>
-                </li>
             </ol>
+            <footer class="inputChat">
+                <input type="text" id="input" placeholder="Text me" class="form-control" disabled="disabled" />
+            </footer>
         </section>
     </div>
-
-
-
-
+    <template id="chatMsgOtherTemplate">
+        <li class="other">
+            <div class="avatar">        <img src="{{img}}" />      </div>
+            <div class="messages">
+                <p>{{message}}</p>
+                <time datetime="{{time}}">{{time}}</time>
+            </div>
+        </li>
+    </template>
+    <template id="chatMsgOwnTemplate">
+        <li class="self">
+            <div class="avatar">        <img src="{{img}}" />      </div>
+            <div class="messages">
+                <p>{{message}}</p>
+                <time datetime="{{time}}">{{time}}</time>
+            </div>
+        </li>
+    </template>
     <template id="srvTemplate">
         <div class="col-md-4" id="srv_{{idServidor}}">
             <div class="panel panel-default {{statusClass}}">
@@ -102,7 +93,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-    <script src="./frontend.js"></script>
+    <script src="./js/common.js"></script>
+    <script src="./js/chat.js"></script>
+    <script src="./js/frontend.js"></script>
     <link rel="stylesheet" href="./css/frontend.css" />
     <link rel="stylesheet" href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" />
 </body>

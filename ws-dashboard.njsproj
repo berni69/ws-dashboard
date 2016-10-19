@@ -18,20 +18,24 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
-    <Content Include="css\frontend.css" />
-    <Content Include="frontend.html" />
+    <Content Include="client\css\frontend.css" />
+    <Content Include="client\frontend.html" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Compile Include="client\js\chat.js" />
+    <Compile Include="client\js\Common.js" />
     <Compile Include="data\config.js" />
     <Compile Include="data\mysqlconn.js" />
-    <Compile Include="frontend.js" />
+    <Compile Include="client\js\frontend.js" />
     <Compile Include="server.js" />
     <Content Include="data\example.json" />
     <Compile Include="data\data.js" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="client\js\" />
     <Folder Include="data" />
-    <Folder Include="css\" />
+    <Folder Include="client\css\" />
+    <Folder Include="client\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->

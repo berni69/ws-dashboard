@@ -1,8 +1,4 @@
-﻿String.prototype.replaceAll = function (search, replacement) {
-    var target = this;
-    var s1 = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return target.replace(new RegExp(s1, 'g'), replacement);
-};
+﻿var ns_socket = {};
 $(function () {
     "use strict";
     
@@ -17,8 +13,8 @@ $(function () {
     var myColor = false;
     // my name sent to the server
     var myName = 'user_' + Math.random().toString(36).substr(2, 5);
-    
-    // if user is running mozilla then use it's built-in WebSocket
+	ns_chat.init(myName);
+	// if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
     
     // if browser doesn't support WebSocket, just show some notification and exit
@@ -72,9 +68,8 @@ $(function () {
  
         } else if (json.type === 'message') { // it's a single message
             input.removeAttr('disabled'); // let the user write another message
-            addMessage(json.data.author, json.data.text,
-                       json.data.color, new Date(json.data.time));
-					   
+			ns_chat.appendMessage({ idUsuario: json.data.author, message: json.data.text, time: new Date(json.data.time) });
+								   
         } else if (json.type === 'update') { // it's a single message
             
             addMessage(json.data.idUsuario, 'Updated server: ' + json.data.Descripcion + ' to "' + json.data.Estado + '"',
@@ -174,12 +169,7 @@ $(function () {
      */
     var getDashTemplate = function (values) {
         var div = $('#srvTemplate').html();
-        for (var property in values) {
-            if (values.hasOwnProperty(property)) {
-                div = div.replaceAll('{{' + property + '}}', values[property]);
-            }
-        }
-        return div;
+		return div.processTemplate(values);
     }
     
     /** Function used to register the user the first time **/
@@ -194,9 +184,10 @@ $(function () {
     /** Function used to append the log history **/
     var appendHistory = function (data) {
         // insert every single message to the chat window
-        for (var i = 0; i < data.length; i++) {
-            addMessage(data[i].author, data[i].text,
-                           data[i].color, new Date(data[i].time));
+		for (var i = 0; i < data.length; i++) {
+
+			ns_chat.appendMessage({ idUsuario: data[i].author, message: data[i].text, time: new Date(data[i].time) });
+
         }
     };
     

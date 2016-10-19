@@ -50,7 +50,7 @@ var server = http.createServer(function (request, response) {
     /** If the request is not a websocket, we will serve it **/ 
     var pathname = url.parse(request.url).pathname;
     console.log('Request for ' + pathname + ' received.');
-    fs.readFile('.' + pathname, function (err, html) {
+    fs.readFile('./client/' + pathname, function (err, html) {
         if (err) {
             response.writeHead(400, {
                 'Content-Type': 'text/plain'
