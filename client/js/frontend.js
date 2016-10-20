@@ -29,7 +29,7 @@ $(function () {
     }
     
     // open connection
-    var connection = new WebSocket('ws://' + document.location.hostname + ':1337');
+    var connection = new WebSocket('ws://' + document.location.hostname + ':8080');
     connection.onopen = function () {
         registerUser();
     };

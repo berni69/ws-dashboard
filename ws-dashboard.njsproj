@@ -24,6 +24,7 @@
     <Content Include="README.md" />
     <Compile Include="client\js\chat.js" />
     <Compile Include="client\js\Common.js" />
+    <Compile Include="cookie.js" />
     <Compile Include="data\config.js" />
     <Compile Include="data\mysqlconn.js" />
     <Compile Include="client\js\frontend.js" />

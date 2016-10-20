@@ -1,18 +1,24 @@
 'use strict';
 
 // Optional. You will see this name in eg. 'ps' or 'top' command
-process.title = 'node-chat';
+process.title = 'node-dashboard';
 
 // Port where we'll run the websocket server
-var webSocketsServerPort = 1337;
+var webSocketsServerPort = 8080;
 
 // websocket and http servers
-var webSocketServer = require('websocket').server;
+
 var http = require('http');
 var fs = require('fs');
-var data_mod = require('./data/data');
 var url = require('url');
 var mime = require('mime');
+
+var redis = require('redis'); //PHP Sesion
+var webSocketServer = require('websocket').server; //Websockets
+var co = require('./cookie.js'); //Cookies
+var data_mod = require('./data/data'); //Getting data from mysql/sample json
+
+
 
 /**
  * Global variables
@@ -21,13 +27,13 @@ var mime = require('mime');
 var history = [];
 // list of currently connected clients (users)
 var clients = [];
-
 var data = [];
-
 // List of data to draw dashboard
 data_mod.getData(function (d) {
 	data = d;
 });
+
+
 /**
  * Helper function for escaping input strings
  */
@@ -35,6 +41,10 @@ function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
         .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+
+
+
 
 // Array with some colors
 var colors = ['red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange'];
@@ -49,27 +59,58 @@ avatars.sort(function (a) {
 	return Math.random() > 0.5;
 });
 
+
+var fileExists = function(filename) {
+	try {
+		require('fs').accessSync(filename)
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
+var handleStaticRequest = function (request, response) {
+	var pathname = url.parse(request.url).pathname;
+	if (fileExists('./client/' + path)) {
+		console.log('Request for ' + pathname + ' received.');
+		fs.readFile('./client/' + pathname, function (err, html) {
+			if (err) {
+				response.writeHead(404, {
+					'Content-Type': 'text/plain'
+				});
+				response.end('Not found');
+			} else {
+
+				response.writeHead(200, { 'Content-Type': mime.lookup(pathname) });
+				response.end(html);
+			}
+		});
+
+		var cookieManager = new co.cookie(request.headers.cookie);
+		var clientSession = new redis.createClient();
+		clientSession.get("sessions/" + cookieManager.get("PHPSESSID"), function (error, result) {
+			if (error) {
+				console.log("error : " + error);
+			}
+			if (result != null && result.toString() != "") {
+				console.log("result exist" + cookieManager.get("PHPSESSID"));
+			} else {
+				console.log("session does not exist");
+			}
+		});
+	}
+
+
+}
+
 /**
  * HTTP server
  */
 var server = http.createServer(function (request, response) {
-    /** If the request is not a websocket, we will serve it **/ 
-    var pathname = url.parse(request.url).pathname;
-    console.log('Request for ' + pathname + ' received.');
-    fs.readFile('./client/' + pathname, function (err, html) {
-        if (err) {
-            response.writeHead(400, {
-                'Content-Type': 'text/plain'
-            });
-            response.end('Not found');
-        } else {
-
-            response.writeHead(200, { 'Content-Type': mime.lookup(pathname)});
-            response.end(html);
-        }
-    });
-
+	/** If the request is not a websocket, we will serve it **/
+	handleStaticRequest(request, response);
 });
+
 server.listen(webSocketsServerPort, function () {
     console.log((new Date()) + ' Server is listening on port ' + webSocketsServerPort);
 });
