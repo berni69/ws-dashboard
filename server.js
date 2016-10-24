@@ -10,14 +10,13 @@ var webSocketsServerPort = 8080;
 
 var http = require('http');
 var fs = require('fs');
+var path = require('path')
 var url = require('url');
 var mime = require('mime');
-
-var redis = require('redis'); //PHP Sesion
+var ejs = require('ejs');
 var webSocketServer = require('websocket').server; //Websockets
-var co = require('./cookie.js'); //Cookies
 var data_mod = require('./data/data'); //Getting data from mysql/sample json
-
+var session = require('./data/sessions'); //Getting data from session (ejs)
 
 
 /**
@@ -60,47 +59,48 @@ avatars.sort(function (a) {
 });
 
 
-var fileExists = function(filename) {
-	try {
-		require('fs').accessSync(filename)
-		return true;
-	} catch (e) {
-		return false;
-	}
-}
-
-var handleStaticRequest = function (request, response) {
+var templateContent = ['.html','.htm','.js','.ejs']
+var handleStaticRequest = function (request, response, session) {
 	var pathname = url.parse(request.url).pathname;
-	if (fileExists('./client/' + path)) {
-		console.log('Request for ' + pathname + ' received.');
-		fs.readFile('./client/' + pathname, function (err, html) {
-			if (err) {
-				response.writeHead(404, {
-					'Content-Type': 'text/plain'
-				});
-				response.end('Not found');
-			} else {
-
-				response.writeHead(200, { 'Content-Type': mime.lookup(pathname) });
-				response.end(html);
-			}
-		});
-
-		var cookieManager = new co.cookie(request.headers.cookie);
-		var clientSession = new redis.createClient();
-		clientSession.get("sessions/" + cookieManager.get("PHPSESSID"), function (error, result) {
-			if (error) {
-				console.log("error : " + error);
-			}
-			if (result != null && result.toString() != "") {
-				console.log("result exist" + cookieManager.get("PHPSESSID"));
-			} else {
-				console.log("session does not exist");
-			}
-		});
+	var extension = path.extname(pathname);
+	var isTemplate = templateContent.indexOf(extension) !== -1;
+	var options = {
+		encoding : isTemplate?"utf-8":null
 	}
 
 
+	console.log('Request for ' + pathname + ' received.');
+	fs.readFile('./client/' + pathname, options, function (err, content) {
+		if (err) {
+			response.writeHead(404, {
+				'Content-Type': 'text/plain'
+			});
+			response.end('Not found');
+		} else {
+
+
+			var html = '';
+			if (isTemplate) {
+				console.log("rendering" + pathname );
+				html = ejs.render(content, { session: session });
+			}
+			else
+				html = content;
+			response.writeHead(200, { 'Content-Type': mime.lookup(pathname) });
+			response.end(html);
+		}
+	});
+};
+
+
+
+
+var handleRequest = function (request, response) {
+
+	session.getSession(request.headers.cookie).then(function (session) {
+		handleStaticRequest(request, response,session);
+	});
+	
 }
 
 /**
@@ -108,7 +108,7 @@ var handleStaticRequest = function (request, response) {
  */
 var server = http.createServer(function (request, response) {
 	/** If the request is not a websocket, we will serve it **/
-	handleStaticRequest(request, response);
+	handleRequest(request, response);
 });
 
 server.listen(webSocketsServerPort, function () {

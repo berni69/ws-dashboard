@@ -6,5 +6,5 @@ module.exports = {
 		password: 'tiadm123',
 		database: 'TIADM'
 	},
-	demo: false
+	localMode: false
 };

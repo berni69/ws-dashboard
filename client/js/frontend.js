@@ -12,7 +12,8 @@ $(function () {
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
-	var myName = 'user_' + Math.random().toString(36).substr(2, 5);
+	var myName = session.idUsuario;//'user_' + Math.random().toString(36).substr(2, 5);
+	var userName = session.userName;
 	var myUser = null;
 	// if user is running mozilla then use it's built-in WebSocket
     window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -184,7 +185,7 @@ $(function () {
     var registerUser = function () {
         connection.send(JSON.stringify({
             type: 'register',
-            data: myName
+			data: { idUsuario: myName, userName: '' }
         }));
         input.removeAttr('disabled').focus();
     }
@@ -200,7 +201,7 @@ $(function () {
     
     /** Function used to set the color of the user **/
 	var setColor = function (color) {
-        status.text(myName + ': ').css('color', color);
+        status.text(userName).css('color', color);
         input.removeAttr('disabled').focus();
     }
     

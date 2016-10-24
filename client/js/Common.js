@@ -28,11 +28,13 @@ String.prototype.hashCode = function () {
 function User(args) {
 	if (typeof args === 'undefined') {
 		this.idUsuario = '';
+		this.userName = '';
 		this.avatar = '';
 		this.color = '';
 	} else {
 		this.idUsuario = args.idUsuario;
 		this.avatar = args.avatar;
 		this.color = args.color;
+		this.userName = args.userName;
 	}
 };

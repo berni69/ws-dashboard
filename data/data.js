@@ -1,10 +1,11 @@
 var fs = require('fs');
 var config = require('./config.js');
 var connection = require('./mysqlconn.js');
+
 module.exports = {
   getData: function (cb) {
 
-	  if (config.demo) {
+	  if (config.localMode) {
 
 		  fs.readFile('./data/example.json', { encoding: 'utf8' }, function (err, data) {
 			  if (err) throw err;
