@@ -21,6 +21,14 @@ module.exports = {
 		  });
 		  
 	  }
-  },
+	},
+  getUserInfo(idUsuario,cb) {
+	  var db = connection();
+	  db.query("SELECT * FROM TB_Usuarios WHERE idUsuario = '" + idUsuario + "'", function (err, rows) {
+		  if (err) throw err;
+		  cb({ 'fields': rows });
+	  });
+  }
+
   
 };

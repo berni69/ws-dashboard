@@ -24,10 +24,12 @@
     <Content Include="README.md" />
     <Compile Include="client\js\chat.js" />
     <Compile Include="client\js\Common.js" />
-    <Compile Include="cookie.js" />
+    <Compile Include="client\js\Notification.js" />
+    <Compile Include="data\cookie.js" />
     <Compile Include="data\config.js" />
     <Compile Include="data\mysqlconn.js" />
     <Compile Include="client\js\frontend.js" />
+    <Compile Include="data\sessions.js" />
     <Compile Include="server.js" />
     <Content Include="data\example.json" />
     <Compile Include="data\data.js" />

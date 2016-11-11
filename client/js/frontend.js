@@ -12,7 +12,7 @@ $(function () {
     // my color assigned by the server
     var myColor = false;
     // my name sent to the server
-	var myName = session.idUsuario;//'user_' + Math.random().toString(36).substr(2, 5);
+	//var myName = session.idUsuario;//'user_' + Math.random().toString(36).substr(2, 5);
 	var userName = session.userName;
 	var myUser = null;
 	// if user is running mozilla then use it's built-in WebSocket
@@ -80,8 +80,10 @@ $(function () {
             
 			addMessage(json.data.User.idUsuario, 'Updated server: ' + json.data.Descripcion + ' to "' + json.data.Estado + '"',
 				json.data.User.color, new Date());
-            updateEstado(json.data);
+            updateEstado(json.data.data);
+		} else if (json.type === 'notify') { // it's a single message
 
+			sendNotify(json.data);
 
         } else {
             console.log('Hmm..., I\'ve never seen JSON like this: ', json);
@@ -184,8 +186,8 @@ $(function () {
     
     var registerUser = function () {
         connection.send(JSON.stringify({
-            type: 'register',
-			data: { idUsuario: myName, userName: '' }
+			type: 'register',
+			data: { idUsuario: session.userName, userName: session.usrDescripcion, 'type': 'chat' }
         }));
         input.removeAttr('disabled').focus();
     }
@@ -201,7 +203,7 @@ $(function () {
     
     /** Function used to set the color of the user **/
 	var setColor = function (color) {
-        status.text(userName).css('color', color);
+		status.text(session.usrDescripcion).css('color', color);
         input.removeAttr('disabled').focus();
     }
     
@@ -221,6 +223,19 @@ $(function () {
             type: 'chat',
             data: msg
         }));
-    };
+	};
+
+	var sendNotify = function (data) {
+		if (Notification.permission !== 'granted') {
+			Notification.requestPermission();
+		}
+		console.log("data");
+		console.log(data);
+		var n = new Notification("Tiadm", {
+			body: data.data.text,
+			icon: "star.ico"
+		});
+	}
+
 
 });

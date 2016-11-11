@@ -1,7 +1,7 @@
 'use strict';
 
 // Optional. You will see this name in eg. 'ps' or 'top' command
-process.title = 'node-dashboard';
+process.title = 'ws-dashboard';
 
 // Port where we'll run the websocket server
 var webSocketsServerPort = 8080;
@@ -17,8 +17,7 @@ var ejs = require('ejs');
 var webSocketServer = require('websocket').server; //Websockets
 var data_mod = require('./data/data'); //Getting data from mysql/sample json
 var session = require('./data/sessions'); //Getting data from session (ejs)
-
-
+require('mini-linq-js');
 /**
  * Global variables
  */
@@ -67,10 +66,8 @@ var handleStaticRequest = function (request, response, session) {
 	var options = {
 		encoding : isTemplate?"utf-8":null
 	}
-
-
 	console.log('Request for ' + pathname + ' received.');
-	fs.readFile('./client/' + pathname, options, function (err, content) {
+	fs.readFile(__dirname + '/client/' + pathname, options, function (err, content) {
 		if (err) {
 			response.writeHead(404, {
 				'Content-Type': 'text/plain'
@@ -132,93 +129,123 @@ wsServer.on('request', function (request) {
     // accept connection - you should check 'request.origin' to make sure that
     // client is connecting from your website
     // (http://en.wikipedia.org/wiki/Same_origin_policy)
-    var connection = request.accept(null, request.origin);
-    // we need to know client index to remove them on 'close' event
-    var index = clients.push(connection) - 1;
+	var connection = request.accept(null, request.origin);
+	// we need to know client index to remove them on 'close' event
+	var index = clients.push({ 'cnx': connection, 'User': null, type: null, role: null }) - 1;
 	var User = null;
 
 	    
     console.log((new Date()) + ' Connection accepted.');
     
-    // send back chat history
-    if (history.length > 0) {
-        connection.sendUTF(JSON.stringify({
-            type: 'history',
-            data: history
-        }));
-    }
-    if (typeof data !== 'undefined') {
-        connection.sendUTF(JSON.stringify({
-            type: 'initialStatus',
-            data: data
-        }));
-    }
     
     
     // user sent some message
-    connection.on('message', function (message) {
+	connection.on('message', function (message) {
+		console.log(message);
         if (message.type === 'utf8') {
             var msg = JSON.parse(message.utf8Data);
             console.log((new Date()) + ' New message as: ' + msg.type);
 			if (msg.type === 'register') {
-				var idUsuario = htmlEntities(msg.data);
-                // get random color and send it back to the user
+				var idUsuario = htmlEntities(msg.data.idUsuario);
 				var userColor = colors.shift();
 				var userAvatar = avatars.shift();
 				User = {
-					idUsuario : idUsuario,
-					avatar : userAvatar,
-					color : userColor
+					idUsuario: idUsuario,
+					avatar: userAvatar,
+					color: userColor
 				};
-                connection.sendUTF(JSON.stringify({
+				clients[index].User = User;
+				clients[index].type = msg.data.type;
+
+				data_mod.getUserInfo(idUsuario,function (d) {
+					clients[index].role = d.fields[0].AccessLevel;
+					/*connection.sendUTF(JSON.stringify({
+						type: 'log',
+						data: d.fields[0].AccessLevel
+					}));*/
+					//console.log(clients[index]);
+				});
+
+				connection.sendUTF(JSON.stringify({
 					type: 'registerResponse',
 					data: User
 				}));
-				console.log((new Date()) + ' User is known as: ' + User.idUsuario +
-					' with ' + User.color + ' color.');
 
-            } else if (msg.type === 'update') {
-                var server = msg.data;
-                for (var i = 0, len = data.servers.length; i < len; i++) {
-                    if (data.servers[i].idServidor == server.idServidor) {
-                        data.servers[i].Estado = server.Estado;
-                        data.servers[i].Accion = server.Accion;
-                        msg.data.Descripcion = data.servers[i].Descripcion;
-                        break;
-                    }
-                }
 
-				msg.data.User = User;                
-                var json = JSON.stringify({
-                    type: 'update',
-                    data: msg.data
-                });
-                
-                for (var i = 0; i < clients.length; i++) {
-                    clients[i].sendUTF(json);
-                }
-            }			
-            else if (msg.type === 'chat') { // log and broadcast the message
-				console.log((new Date()) + ' Received Message from ' +
-					User.idUsuario + ': ' + msg.data);
-                // we want to keep history of all sent messages
-                var obj = {
-                    time: (new Date()).getTime(),
-                    text: htmlEntities(msg.data),
+				if (msg.data.type != 'onlyNotify') { //Create dashboard
+					// send back chat history
+					if (history.length > 0) {
+						connection.sendUTF(JSON.stringify({
+							type: 'history',
+							data: history
+						}));
+					}
+					if (typeof data !== 'undefined') {
+						connection.sendUTF(JSON.stringify({
+							type: 'initialStatus',
+							data: data
+						}));
+					}
+				}
+
+			} else if (msg.type === 'update') {
+				var server = msg.data;
+				for (var i = 0, len = data.servers.length; i < len; i++) {
+					if (data.servers[i].idServidor == server.idServidor) {
+						data.servers[i].Estado = server.Estado;
+						data.servers[i].Accion = server.Accion;
+						msg.data.Descripcion = data.servers[i].Descripcion;
+						break;
+					}
+				}
+
+				msg.data.User = User;
+				var json = JSON.stringify({
+					type: 'update',
+					data: msg.data
+				});
+
+				for (var i = 0; i < clients.length; i++) {
+					clients[i].cnx.sendUTF(json);
+				}
+			}
+			else if (msg.type === 'chat') { // log and broadcast the message
+				var obj = {
+					time: (new Date()).getTime(),	
+					text: htmlEntities(msg.data),
 					User: User,
-                };
-                history.push(obj);
-                history = history.slice(-100);
-                
-                // broadcast message to all connected clients
-                var json = JSON.stringify({
-                    type: 'message',
-                    data: obj
-                });
-                for (var i = 0; i < clients.length; i++) {
-                    clients[i].sendUTF(json);
-                }
-            }
+				};
+				history.push(obj);
+				history = history.slice(-100);
+
+				// broadcast message to all connected clients
+				var json = JSON.stringify({
+					type: 'message',
+					data: obj
+				});
+				for (var i = 0; i < clients.length; i++) {
+					clients[i].cnx.sendUTF(json);
+				}
+			}
+			else if (msg.type === 'notify') {
+				var obj = {
+					time: (new Date()).getTime(),
+					data: msg.data,
+					User: User,
+				};
+				var json = JSON.stringify({
+					type: 'notify',
+					data: obj
+				});
+				
+				//console.log(Enumerable.from(clients).where("$.type == 'onlyNotify'"));
+				var e = clients.where(cli => cli.type === 'onlyNotify' && cli.role < 3);
+
+				for (var i = 0; i < e.length; i++) {
+					e[i].cnx.sendUTF(json);
+				}
+			}
+
         }
     });
     
