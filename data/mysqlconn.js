@@ -1,16 +1,18 @@
 ﻿var config = require('./config.js');
 var mysql = require('mysql');
-var db = null;
+var pool = null;
 module.exports = function () {
-	if (db === null) {
-		db = mysql.createConnection(config.db_connection);
-		db.connect(function (err) {
+	if (pool === null) {
+		//db = mysql.createConnection(config.db_connection);
+		pool = mysql.createPool(config.db_connection);
+		/*pool.connect(function (err) {
 			if (!err) {
 				console.log("Database is connected ... nn" + err);
 			} else {
 				console.log("Error connecting database ... nn" + err);
 			}
-		});
+		});*/
+
 	}
-	return db;
+	return pool;
 }

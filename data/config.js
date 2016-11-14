@@ -4,7 +4,8 @@ module.exports = {
 		host: 'stormdb.globalia.com',
 		user: 'tiadm',
 		password: 'tiadm123',
-		database: 'TIADM'
+		database: 'TIADM',
+		connectionLimit : 10
 	},
 	localMode: false
 };

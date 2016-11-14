@@ -156,16 +156,16 @@ wsServer.on('request', function (request) {
 				};
 				clients[index].User = User;
 				clients[index].type = msg.data.type;
-
-				data_mod.getUserInfo(idUsuario,function (d) {
-					clients[index].role = d.fields[0].AccessLevel;
-					/*connection.sendUTF(JSON.stringify({
-						type: 'log',
-						data: d.fields[0].AccessLevel
-					}));*/
-					//console.log(clients[index]);
-				});
-
+				try {
+					data_mod.getUserInfo(idUsuario, function (d) {
+						clients[index].role = d.fields[0].AccessLevel;						
+					});
+				}
+				catch (ex) {
+					console.log("Can't retrieve data");
+					console.log(ex);
+				}
+				
 				connection.sendUTF(JSON.stringify({
 					type: 'registerResponse',
 					data: User
